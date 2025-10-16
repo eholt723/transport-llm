@@ -1,0 +1,9 @@
+__pycache__/
+*.pt
+*.bin
+*.safetensors
+*.onnx
+*.gguf
+data/raw_texts/
+out*/
+merged*/
