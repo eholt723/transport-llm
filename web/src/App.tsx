@@ -147,7 +147,7 @@ export default function App() {
         fontFamily,
         padding: "48px 16px",
         // ✅ Full-page white border
-        border: "4px solid rgba(255,255,255,0.15)",
+        border: "5px solid rgba(255, 255, 255, 0.75)",
         boxShadow: "0 0 30px rgba(255,255,255,0.05)",
       }}
     >
