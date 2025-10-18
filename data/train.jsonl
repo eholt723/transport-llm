@@ -1,0 +1,10 @@
+{"instruction": "What is a bus?", "response": "A road vehicle designed to carry many passengers."}
+{"instruction": "Name a benefit of subways.", "response": "High capacity transit with reliable travel times."}
+{"instruction": "Why are bike lanes useful?", "response": "They improve safety and encourage cycling."}
+{"instruction": "Define headway in transit.", "response": "Time between vehicles on the same route."}
+{"instruction":"What is farebox recovery ratio?","response":"The share of operating costs covered by passenger fares."}
+{"instruction":"Compare light rail vs. BRT in dense corridors.","response":"Light rail offers higher capacity and smoother rides but higher capital cost; BRT is cheaper and faster to deploy with flexible routing."}
+{"instruction":"Calculate: headway 12 min. How many vehicles/hour?","response":"60/12 = 5 vehicles per hour in one direction."}
+{"instruction":"Why add bus lanes? Give 3 reasons.","response":"More reliable travel time; higher throughput per lane; improves schedule adherence."}
+{"instruction":"Define transit signal priority (TSP).","response":"Traffic signal adjustments that reduce red time or extend green for approaching buses to cut delay."}
+{"instruction":"Name 3 ways to improve stop accessibility.","response":"Curb ramps; clear sidewalks; tactile paving and readable signage."}

@@ -1,12 +1,42 @@
-<!doctype html><html><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Transit Through Time — WebGPU LLM</title>
-</head><body>
-<h1>Transit Through Time (Offline)</h1>
-<div>
-  <textarea id="q" rows="4" cols="60" placeholder="Ask about transportation history..."></textarea><br>
-  <button id="go">Ask</button>
-</div>
-<pre id="out"></pre>
-<script src="app.js"></script>
-</body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <meta
+      name="description"
+      content="Transport LLM — Edge AI Demo. A fine-tuned transportation language model running entirely in your browser with WebGPU acceleration."
+    />
+    <title>Transport LLM — Edge AI Demo</title>
+
+    <!-- (Optional) Google Analytics 4 — replace G-XXXXXXX with your tag -->
+    <!--
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXX');
+    </script>
+    -->
+
+    <!-- Favicon (optional, you can add /public/favicon.ico) -->
+    <link rel="icon" type="image/png" href="/favicon.png" />
+  </head>
+
+  <body style="margin: 0; background: #0f172a; color: white;">
+    <noscript>
+      <div style="padding: 2rem; text-align: center; color: #f87171;">
+        This demo requires JavaScript and WebGPU support.
+      </div>
+    </noscript>
+
+    <div id="root"></div>
+
+    <!-- Use a relative path so it respects your Vite base (e.g., /transport-llm/) -->
+    <script type="module" src="./src/main.tsx"></script>
+  </body>
+</html>
