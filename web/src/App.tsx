@@ -17,12 +17,12 @@ export default function App() {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-scroll chat
+  // Auto-scroll when new messages appear
   useEffect(() => {
     scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight });
   }, [messages]);
 
-  // Keep cursor focused
+  // Keep focus in the text box
   useEffect(() => {
     inputRef.current?.focus();
   }, [engine, busy, messages]);
@@ -32,7 +32,7 @@ export default function App() {
     inputRef.current?.focus();
   }, []);
 
-  // ── Auto-load model on mount ─────────────────────────────
+  // Auto-load the default model
   useEffect(() => {
     (async () => {
       try {
@@ -43,7 +43,7 @@ export default function App() {
         const ids: string[] =
           prebuiltAppConfig?.model_list?.map((m: any) => m.model_id) ?? [];
         if (!ids.length) throw new Error("No prebuilt models found.");
-        const modelId = ids[0]; // Replace with your fine-tuned model later
+        const modelId = ids[0]; // use your fine-tuned model later
 
         const eng = await CreateMLCEngine(modelId, {
           initProgressCallback: onProgress,
@@ -123,7 +123,7 @@ export default function App() {
     }
   }
 
-  // ── Styles ───────────────────────────────────────────────
+  // ── Theme & Layout Styles ──
   const bg = "#0f172a";
   const panel = "#0b1225";
   const panelBorder = "rgba(255,255,255,0.06)";
@@ -132,9 +132,11 @@ export default function App() {
   const inputBg = "#0d1530";
   const btn = "#4f6bff";
   const fontFamily = "system-ui, Segoe UI, Roboto, Arial, sans-serif";
-  const assistantBg = "rgba(79,107,255,0.12)"; // soft blue glow
+  const assistantBg = "rgba(79,107,255,0.12)";
   const userBg = "#1e293b";
+  const frameBorder = "rgba(255,255,255,0.12)";
 
+  // ── Render ──
   return (
     <div
       style={{
@@ -142,143 +144,154 @@ export default function App() {
         background: bg,
         color: text,
         display: "flex",
-        alignItems: "flex-start",
+        alignItems: "stretch",
         justifyContent: "center",
-        padding: "48px 16px",
+        padding: "24px",
         fontFamily,
       }}
     >
-      <div style={{ width: "min(960px, 100%)" }}>
-        {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: 16 }}>
-          <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700 }}>
-            Transport LLM — Edge AI Demo
-          </h1>
-          <div style={{ marginTop: 8, color: subtext, fontSize: 13 }}>
-            Built with WebGPU · React · Vite · WebLLM
+      {/* Page Frame */}
+      <div
+        style={{
+          width: "min(1100px, 100%)",
+          border: `1px solid ${frameBorder}`,
+          borderRadius: 24,
+          boxShadow: "0 0 0 1px rgba(255,255,255,0.02) inset",
+          padding: "32px",
+        }}
+      >
+        <div style={{ width: "min(960px, 100%)", margin: "0 auto" }}>
+          {/* Header */}
+          <div style={{ textAlign: "center", marginBottom: 16 }}>
+            <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700 }}>
+              Transport LLM — Edge AI Demo
+            </h1>
+            <div style={{ marginTop: 8, color: subtext, fontSize: 13 }}>
+              Runs 100% in your browser via WebGPU
+            </div>
+            <div style={{ marginTop: 8, color: subtext, fontSize: 13 }}>
+              {status}
+            </div>
           </div>
-          <div style={{ marginTop: 8, color: subtext, fontSize: 13 }}>
-            {status}
-          </div>
-        </div>
 
-        {/* Chat panel */}
-        <div
-          style={{
-            background: panel,
-            border: `1px solid ${panelBorder}`,
-            borderRadius: 20,
-            height: 540,
-            padding: "20px 24px",
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column",
-            boxShadow: "0 10px 40px rgba(0,0,0,0.4)",
-          }}
-        >
+          {/* Chat panel */}
           <div
-            ref={scrollerRef}
             style={{
-              flex: 1,
-              overflowY: "auto",
-              paddingRight: 4,
-              scrollBehavior: "smooth",
+              background: panel,
+              border: `1px solid ${panelBorder}`,
+              borderRadius: 20,
+              height: 540,
+              padding: "20px 24px",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              boxShadow: "0 10px 40px rgba(0,0,0,0.4)",
             }}
           >
-            {messages.length === 0 && (
-              <div
+            <div
+              ref={scrollerRef}
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                paddingRight: 4,
+                scrollBehavior: "smooth",
+              }}
+            >
+              {messages.length === 0 && (
+                <div
+                  style={{
+                    color: subtext,
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 15,
+                  }}
+                >
+                  Start the conversation…
+                </div>
+              )}
+
+              {messages.map((m, i) => {
+                const isUser = m.role === "user";
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      justifyContent: isUser ? "flex-end" : "flex-start",
+                      marginBottom: 16,
+                    }}
+                  >
+                    <div
+                      style={{
+                        maxWidth: "90%",
+                        background: isUser ? userBg : assistantBg,
+                        border: `1px solid ${panelBorder}`,
+                        padding: "14px 18px",
+                        borderRadius: 16,
+                        whiteSpace: "pre-wrap",
+                        lineHeight: 1.55,
+                        fontSize: 15,
+                        color: isUser ? text : "rgba(255,255,255,0.95)",
+                        boxShadow: isUser
+                          ? "0 2px 6px rgba(0,0,0,0.25)"
+                          : "0 2px 10px rgba(79,107,255,0.2)",
+                      }}
+                    >
+                      {m.content}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Input row */}
+            <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+              <textarea
+                ref={inputRef}
+                placeholder="Say hi…"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                rows={2}
                 style={{
-                  color: subtext,
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  flex: 1,
+                  background: inputBg,
+                  color: text,
+                  border: `1px solid ${panelBorder}`,
+                  outline: "none",
+                  borderRadius: 12,
+                  padding: "12px 14px",
+                  resize: "none",
+                  fontSize: 15,
+                  fontFamily,
+                }}
+                disabled={!engine || busy}
+              />
+              <button
+                onClick={handleSend}
+                disabled={!engine || busy || !input.trim()}
+                style={{
+                  minWidth: 84,
+                  padding: "12px 18px",
+                  background:
+                    !engine || busy || !input.trim() ? "#334155" : btn,
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 12,
+                  fontWeight: 700,
+                  cursor:
+                    !engine || busy || !input.trim()
+                      ? "not-allowed"
+                      : "pointer",
+                  fontFamily,
                   fontSize: 15,
                 }}
               >
-                Start the conversation…
-              </div>
-            )}
-
-            {messages.map((m, i) => {
-              const isUser = m.role === "user";
-              return (
-                <div
-                  key={i}
-                  style={{
-                    display: "flex",
-                    justifyContent: isUser ? "flex-end" : "flex-start",
-                    marginBottom: 16,
-                  }}
-                >
-                  <div
-                    style={{
-                      maxWidth: "90%",
-                      background: isUser ? userBg : assistantBg,
-                      border: `1px solid ${panelBorder}`,
-                      padding: "14px 18px",
-                      borderRadius: 16,
-                      whiteSpace: "pre-wrap",
-                      lineHeight: 1.55,
-                      fontSize: 15,
-                      color: isUser ? text : "rgba(255,255,255,0.95)",
-                      boxShadow: isUser
-                        ? "0 2px 6px rgba(0,0,0,0.25)"
-                        : "0 2px 10px rgba(79,107,255,0.2)",
-                    }}
-                  >
-                    {m.content}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Input row */}
-          <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-            <textarea
-              ref={inputRef}
-              placeholder="Say hi…"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              rows={2}
-              style={{
-                flex: 1,
-                background: inputBg,
-                color: text,
-                border: `1px solid ${panelBorder}`,
-                outline: "none",
-                borderRadius: 12,
-                padding: "12px 14px",
-                resize: "none",
-                fontSize: 15,
-                fontFamily,
-              }}
-              disabled={!engine || busy}
-            />
-            <button
-              onClick={handleSend}
-              disabled={!engine || busy || !input.trim()}
-              style={{
-                minWidth: 84,
-                padding: "12px 18px",
-                background:
-                  !engine || busy || !input.trim() ? "#334155" : btn,
-                color: "#fff",
-                border: "none",
-                borderRadius: 12,
-                fontWeight: 700,
-                cursor:
-                  !engine || busy || !input.trim()
-                    ? "not-allowed"
-                    : "pointer",
-                fontFamily,
-                fontSize: 15,
-              }}
-            >
-              Send
-            </button>
+                Send
+              </button>
+            </div>
           </div>
         </div>
       </div>
