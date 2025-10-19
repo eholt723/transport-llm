@@ -138,7 +138,8 @@ export default function App() {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        height: "100vh", // lock full viewport height (no body scroll)
+        overflow: "hidden", // prevent scrolling the whole page
         background: bg,
         color: text,
         display: "flex",
@@ -146,9 +147,8 @@ export default function App() {
         justifyContent: "center",
         fontFamily,
         padding: "48px 16px",
-        // ✅ Full-page white border
-        border: "5px solid rgba(255, 255, 255, 0.75)",
-        boxShadow: "0 0 30px rgba(255,255,255,0.05)",
+        border: "5px solid rgba(255, 255, 255, 0.75)", // your border
+        boxShadow: "0 0 30px rgba(255, 255, 255, 0.05)",
       }}
     >
       <div style={{ width: "min(960px, 100%)" }}>
