@@ -138,7 +138,11 @@ export default function App() {
   return (
     <div
       style={{
-        height: "100vh", // lock full viewport height (no body scroll)
+        // Make the outer container cover the entire viewport and be fixed so the
+        // browser body never needs to scroll. The visible border will be around
+        // the whole screen.
+        position: "fixed",
+        inset: 0, // shorthand for top:0; right:0; bottom:0; left:0;
         overflow: "hidden", // prevent scrolling the whole page
         background: bg,
         color: text,
@@ -146,11 +150,13 @@ export default function App() {
         alignItems: "center",
         justifyContent: "center",
         fontFamily,
-        padding: "48px 16px",
-        border: "5px solid rgba(255, 255, 255, 0.75)", // your border
+        padding: "6px 16px 24px 16px",
+        boxSizing: "border-box", // ensure border and padding are inside the viewport
+        border: "5px solid rgba(255, 255, 255, 0.75)", // your border around the whole screen
         boxShadow: "0 0 30px rgba(255, 255, 255, 0.05)",
       }}
     >
+
       <div style={{ width: "min(960px, 100%)" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 16 }}>
