@@ -7,12 +7,28 @@ import {
 
 type ChatMsg = { role: "user" | "assistant" | "system"; content: string };
 
+// --- helpers: choose default vs hidden fallback (?model=base) ---
+function pickModelId(): string {
+  const ids: string[] =
+    prebuiltAppConfig?.model_list?.map((m: any) => m.model_id) ?? [];
+  if (!ids.length) throw new Error("No prebuilt models found.");
+
+  const param = new URLSearchParams(window.location.search).get("model");
+  if (param === "base" && ids.length > 1) {
+    // hidden fallback: choose a different model id (use the last one)
+    return ids[ids.length - 1];
+  }
+  // default: first model id
+  return ids[0];
+}
+
 export default function App() {
   const [status, setStatus] = useState("Loading model…");
   const [engine, setEngine] = useState<any>(null);
   const [busy, setBusy] = useState(true);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const [modelId, setModelId] = useState<string | null>(null);
 
   const scrollerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -32,7 +48,7 @@ export default function App() {
     inputRef.current?.focus();
   }, []);
 
-  // Auto-load model
+  // Auto-load model with hidden fallback support
   useEffect(() => {
     (async () => {
       try {
@@ -40,20 +56,26 @@ export default function App() {
         const onProgress = (p: InitProgressReport) =>
           setStatus(p.text || "Loading…");
 
-        const ids: string[] =
-          prebuiltAppConfig?.model_list?.map((m: any) => m.model_id) ?? [];
-        if (!ids.length) throw new Error("No prebuilt models found.");
-        const modelId = ids[0];
+        const chosen = pickModelId();
+        setModelId(chosen);
 
-        const eng = await CreateMLCEngine(modelId, {
+        const eng = await CreateMLCEngine(chosen, {
           initProgressCallback: onProgress,
         });
 
         setEngine(eng);
-        setStatus(`✅ Model “${modelId}” ready!`);
+        setStatus(`✅ Model “${chosen}” ready!`);
       } catch (err: any) {
         console.error(err);
         setStatus("Failed to load model: " + (err?.message ?? String(err)));
+
+        // If default failed and user didn't explicitly request base, auto-redirect to fallback
+        const params = new URLSearchParams(location.search);
+        const requested = params.get("model");
+        if (requested !== "base") {
+          params.set("model", "base");
+          location.search = params.toString(); // reload with fallback
+        }
       } finally {
         setBusy(false);
       }
@@ -138,12 +160,9 @@ export default function App() {
   return (
     <div
       style={{
-        // Make the outer container cover the entire viewport and be fixed so the
-        // browser body never needs to scroll. The visible border will be around
-        // the whole screen.
         position: "fixed",
-        inset: 0, // shorthand for top:0; right:0; bottom:0; left:0;
-        overflow: "hidden", // prevent scrolling the whole page
+        inset: 0,
+        overflow: "hidden",
         background: bg,
         color: text,
         display: "flex",
@@ -151,12 +170,11 @@ export default function App() {
         justifyContent: "center",
         fontFamily,
         padding: "6px 16px 24px 16px",
-        boxSizing: "border-box", // ensure border and padding are inside the viewport
-        border: "5px solid rgba(255, 255, 255, 0.75)", // your border around the whole screen
+        boxSizing: "border-box",
+        border: "5px solid rgba(255, 255, 255, 0.75)",
         boxShadow: "0 0 30px rgba(255, 255, 255, 0.05)",
       }}
     >
-
       <div style={{ width: "min(960px, 100%)" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 16 }}>
@@ -168,6 +186,17 @@ export default function App() {
           </div>
           <div style={{ marginTop: 8, color: subtext, fontSize: 13 }}>
             {status}
+            {modelId && (
+              <>
+                {" "}
+                <span style={{ opacity: 0.7 }}>
+                  {new URLSearchParams(window.location.search).get("model") ===
+                  "base"
+                    ? `(fallback: ${modelId})`
+                    : `(default: ${modelId})`}
+                </span>
+              </>
+            )}
           </div>
         </div>
 
@@ -272,16 +301,13 @@ export default function App() {
               style={{
                 minWidth: 84,
                 padding: "12px 18px",
-                background:
-                  !engine || busy || !input.trim() ? "#334155" : btn,
+                background: !engine || busy || !input.trim() ? "#334155" : btn,
                 color: "#fff",
                 border: "none",
                 borderRadius: 12,
                 fontWeight: 700,
                 cursor:
-                  !engine || busy || !input.trim()
-                    ? "not-allowed"
-                    : "pointer",
+                  !engine || busy || !input.trim() ? "not-allowed" : "pointer",
                 fontFamily,
                 fontSize: 15,
               }}

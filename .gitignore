@@ -1,47 +1,37 @@
-Set-Content -Path .gitignore -Value @'
-# --- Python (finetune) ---
+# --- Python artifacts ---
 __pycache__/
 *.py[cod]
-*.so
+*.pyo
+*.pyd
 .venv/
 venv/
-.env
+env/
 *.egg-info/
-.cache/
-hf_cache/
-finetune/.env
-finetune/.cache/
-finetune/output*/
-finetune/checkpoints*/
-merged*/
-merged-fp16/
+dist/
+build/
 
-# Model / weights / artifacts
+# --- ML models & weights ---
 *.pt
 *.bin
 *.safetensors
 *.onnx
 *.gguf
 
-# --- Node/Web (frontend) ---
-web/node_modules/
-web/dist/
-web/build/
-web/.vite/
-web/.env
-*.log
+# --- Data & outputs ---
+data/raw_texts/
+out*/
+merged*/
+
+# --- Node / JS ---
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+*.tsbuildinfo
 
-# IDE / OS
-.vscode/
+# --- OS / Editor ---
 .DS_Store
 Thumbs.db
-
-# llama.cpp builds
-llama.cpp/build/
-llama.cpp/**/build/
-'@
-
-
+.idea/
+.vscode/
