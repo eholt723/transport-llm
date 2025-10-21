@@ -179,7 +179,7 @@ export default function App() {
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 16 }}>
           <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700 }}>
-            Transport LLM — Edge AI Demo
+            Transportation LLM — Edge AI Demo
           </h1>
           <div style={{ marginTop: 8, color: subtext, fontSize: 13 }}>
             Runs 100% in your browser via WebGPU
