@@ -68,16 +68,16 @@ export default function App() {
     const userRaw = input.trim();
     if (!userRaw || !engine) return;
 
-    // Build hidden RAG context (NOT shown in chat)
+    // Build hidden RAG context as part of the USER message (not another system msg)
+    let userWithContext = userRaw;
     const ctx = makeContext(userRaw, RAG_INDEX, 3, 1200);
-    const contextSystem: ChatMsg | null = ctx
-      ? {
-          role: "system",
-          content:
-            `Transportation context (concise):\n${ctx}\n` +
-            `Use this context if relevant.`,
-        }
-      : null;
+    if (ctx) {
+      userWithContext =
+        `Use the transportation context below to answer the question. ` +
+        `If the context is insufficient, say so briefly.\n\n` +
+        `### Context\n${ctx}\n\n` +
+        `### Question\n${userRaw}`;
+    }
 
     // UI: show only the user's plain question
     setInput("");
@@ -90,13 +90,13 @@ export default function App() {
     setBusy(true);
 
     try {
-      // API messages: base system, optional context system, conversation so far (no system),
-      // and the new user question (plain). Drop the trailing assistant placeholder.
+      // Build API messages: exactly ONE system (base), then convo (no system),
+      // and the augmented USER as the last message. Drop the trailing assistant placeholder.
       const convo = uiNext.filter((m) => m.role !== "system").slice(0, -1);
       const apiMessages: ChatMsg[] = [
-        { role: "system", content: BASE_SYSTEM },
-        ...(contextSystem ? [contextSystem] : []),
-        ...convo,
+        { role: "system", content: BASE_SYSTEM }, // first and only system
+        ...convo.slice(0, -1),                    // prior chat (user/assistant)
+        { role: "user", content: userWithContext } // augmented user
       ];
 
       const stream = await engine.chat.completions.create({
@@ -129,6 +129,7 @@ export default function App() {
       setBusy(false);
     }
   }
+
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {

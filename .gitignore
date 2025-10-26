@@ -11,3 +11,6 @@ dist
 # dotenv
 .env
 .env.*
+
+# WebGPU / MLC
+mlc-out/
