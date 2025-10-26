@@ -3,40 +3,31 @@ import {
   CreateMLCEngine,
   type InitProgressReport,
   type MLCEngineInterface,
-  prebuiltAppConfig,
 } from "@mlc-ai/web-llm";
 import docs from "./data/docs.json";
 import { buildIndex, makeContext } from "./rag";
 
 type ChatMsg = { role: "user" | "assistant" | "system"; content: string };
 
-const catalogIds = prebuiltAppConfig.model_list.map((m) => m.model_id);
-const DEFAULT_MODEL_ID =
-  catalogIds.find(
-    (id) =>
-      /Llama-3.*8B.*Instruct/i.test(id) && /q4f16_1/i.test(id) && /-MLC$/i.test(id)
-  ) ?? catalogIds[0] ?? "Llama-3-8B-Instruct-q4f16_1-MLC";
+// Hardcode your production model (simple and stable)
+const DEFAULT_MODEL_ID = "Llama-3-8B-Instruct-q4f16_1-MLC";
 
-const USE_RAG_DEFAULT = true;
+// One-time RAG index
+const RAG_INDEX = buildIndex(docs as any);
+
+// Base system prompt (concise, transport-focused)
+const BASE_SYSTEM = `You are Transport LLM — a concise assistant about transportation history, terminology, engineering, and standards.
+If context is provided, ground your answer in it. If the context is insufficient, say so briefly.`;
 
 export default function App() {
   const [engine, setEngine] = useState<MLCEngineInterface | null>(null);
   const [status, setStatus] = useState("Loading model…");
   const [busy, setBusy] = useState(true);
   const [input, setInput] = useState("");
-  const [modelId, setModelId] = useState<string>(DEFAULT_MODEL_ID);
-  const [useRag, setUseRag] = useState<boolean>(USE_RAG_DEFAULT);
   const [messages, setMessages] = useState<ChatMsg[]>([
-    {
-      role: "system",
-      content:
-        "You are a concise assistant for the Transport LLM — Edge AI Demo.",
-    },
-    { role: "assistant", content: "Model is loading… first run may take a bit." },
+    { role: "system", content: BASE_SYSTEM },
+    { role: "assistant", content: "Welcome. Ask about rail history, signaling, or standards." },
   ]);
-
-  // Build the RAG index once
-  const ragIndexRef = useRef(buildIndex(docs as any));
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -49,67 +40,64 @@ export default function App() {
     inputRef.current?.focus();
   }, [busy]);
 
+  // Init engine once
   useEffect(() => {
     let cancelled = false;
-    async function init(model: string) {
+    (async () => {
       setBusy(true);
-      setStatus(`Loading ${model}…`);
       try {
-        const e = await CreateMLCEngine(model, {
+        const e = await CreateMLCEngine(DEFAULT_MODEL_ID, {
           initProgressCallback: (p: InitProgressReport) => setStatus(p.text),
         });
         if (!cancelled) {
           setEngine(e);
           setStatus("Ready");
-          setMessages((m) => [
-            m[0],
-            { role: "assistant", content: `Ready. Using model: ${model}` },
-          ]);
         }
       } catch (err: any) {
         const msg = `Init error: ${err?.message ?? String(err)}`;
         setStatus(msg);
         setMessages((m) => [...m, { role: "assistant", content: msg }]);
-        setEngine(null);
       } finally {
         if (!cancelled) setBusy(false);
       }
-    }
-    init(modelId);
-    return () => {
-      cancelled = true;
-    };
-  }, [modelId]);
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   async function send() {
     const userRaw = input.trim();
     if (!userRaw || !engine) return;
 
-    // Build context if RAG is on
-    let userWithContext = userRaw;
-    if (useRag) {
-      const ctx = makeContext(userRaw, ragIndexRef.current, 3, 1200);
-      if (ctx) {
-        userWithContext =
-          `Use the transportation context below to answer the question. ` +
-          `If the context is insufficient, say so and answer best-effort.\n\n` +
-          `### Context\n${ctx}\n\n` +
-          `### Question\n${userRaw}`;
-      }
-    }
+    // Build hidden RAG context (NOT shown in chat)
+    const ctx = makeContext(userRaw, RAG_INDEX, 3, 1200);
+    const contextSystem: ChatMsg | null = ctx
+      ? {
+          role: "system",
+          content:
+            `Transportation context (concise):\n${ctx}\n` +
+            `Use this context if relevant.`,
+        }
+      : null;
 
+    // UI: show only the user's plain question
     setInput("");
-    const next = [
+    const uiNext: ChatMsg[] = [
       ...messages,
-      { role: "user", content: userWithContext } as ChatMsg,
-      { role: "assistant", content: "" } as ChatMsg,
+      { role: "user", content: userRaw },
+      { role: "assistant", content: "" }, // placeholder for streaming
     ];
-    setMessages(next);
+    setMessages(uiNext);
     setBusy(true);
 
     try {
-      // IMPORTANT: drop the trailing assistant placeholder when calling the API
-      const apiMessages = next.filter((m) => m.role !== "system").slice(0, -1);
+      // API messages: base system, optional context system, conversation so far (no system),
+      // and the new user question (plain). Drop the trailing assistant placeholder.
+      const convo = uiNext.filter((m) => m.role !== "system").slice(0, -1);
+      const apiMessages: ChatMsg[] = [
+        { role: "system", content: BASE_SYSTEM },
+        ...(contextSystem ? [contextSystem] : []),
+        ...convo,
+      ];
 
       const stream = await engine.chat.completions.create({
         stream: true,
@@ -155,52 +143,14 @@ export default function App() {
         <header className="header">
           <h1>Transport LLM — Edge AI Demo</h1>
           <div className="status">{status}</div>
-
-          {/* Model picker (dev-time). We’ll remove at polish time. */}
-          <div style={{ marginTop: 8, display: "flex", gap: 12, justifyContent: "center" }}>
-            <label style={{ fontSize: 12, color: "var(--muted)" }}>
-              Model:&nbsp;
-              <select
-                value={modelId}
-                onChange={(e) => setModelId(e.target.value)}
-                disabled={busy}
-                style={{
-                  background: "#0f141a",
-                  color: "var(--text)",
-                  border: "1px solid #334150",
-                  borderRadius: 8,
-                  padding: "4px 8px",
-                }}
-              >
-                {catalogIds.map((id) => (
-                  <option key={id} value={id}>
-                    {id}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label style={{ fontSize: 12, color: "var(--muted)", display: "flex", alignItems: "center", gap: 6 }}>
-              <input
-                type="checkbox"
-                checked={useRag}
-                onChange={(e) => setUseRag(e.target.checked)}
-                disabled={busy}
-              />
-              Use RAG context
-            </label>
-          </div>
         </header>
 
         <main className="card chat">
           <div className="chat-scroll" ref={scrollRef}>
             {messages
-              .filter((m) => m.role !== "system")
+              .filter((m) => m.role !== "system") // hide all system content from the UI
               .map((m, i) => (
-                <div
-                  key={i}
-                  className={`msg ${m.role === "user" ? "user" : "assistant"}`}
-                >
+                <div key={i} className={`msg ${m.role === "user" ? "user" : "assistant"}`}>
                   {m.content}
                 </div>
               ))}
@@ -215,18 +165,14 @@ export default function App() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKeyDown}
             />
-            <button
-              className="button"
-              disabled={!engine || busy || !input.trim()}
-              onClick={send}
-            >
+            <button className="button" disabled={!engine || busy || !input.trim()} onClick={send}>
               {busy ? "…" : "Send"}
             </button>
           </div>
         </main>
 
         <footer className="status">
-          Fully local via WebGPU &nbsp;|&nbsp; No server, no API keys &nbsp;|&nbsp; RAG v1 (TF-IDF)
+          Fully local via WebGPU · No server · RAG v1 enabled
         </footer>
       </div>
     </div>
