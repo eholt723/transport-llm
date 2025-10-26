@@ -5,6 +5,8 @@ import {
   type MLCEngineInterface,
   prebuiltAppConfig,
 } from "@mlc-ai/web-llm";
+import docs from "./data/docs.json";
+import { buildIndex, makeContext } from "./rag";
 
 type ChatMsg = { role: "user" | "assistant" | "system"; content: string };
 
@@ -15,12 +17,15 @@ const DEFAULT_MODEL_ID =
       /Llama-3.*8B.*Instruct/i.test(id) && /q4f16_1/i.test(id) && /-MLC$/i.test(id)
   ) ?? catalogIds[0] ?? "Llama-3-8B-Instruct-q4f16_1-MLC";
 
+const USE_RAG_DEFAULT = true;
+
 export default function App() {
   const [engine, setEngine] = useState<MLCEngineInterface | null>(null);
   const [status, setStatus] = useState("Loading model…");
   const [busy, setBusy] = useState(true);
   const [input, setInput] = useState("");
   const [modelId, setModelId] = useState<string>(DEFAULT_MODEL_ID);
+  const [useRag, setUseRag] = useState<boolean>(USE_RAG_DEFAULT);
   const [messages, setMessages] = useState<ChatMsg[]>([
     {
       role: "system",
@@ -29,6 +34,9 @@ export default function App() {
     },
     { role: "assistant", content: "Model is loading… first run may take a bit." },
   ]);
+
+  // Build the RAG index once
+  const ragIndexRef = useRef(buildIndex(docs as any));
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -43,7 +51,6 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false;
-
     async function init(model: string) {
       setBusy(true);
       setStatus(`Loading ${model}…`);
@@ -55,7 +62,7 @@ export default function App() {
           setEngine(e);
           setStatus("Ready");
           setMessages((m) => [
-            m[0], // keep system
+            m[0],
             { role: "assistant", content: `Ready. Using model: ${model}` },
           ]);
         }
@@ -68,7 +75,6 @@ export default function App() {
         if (!cancelled) setBusy(false);
       }
     }
-
     init(modelId);
     return () => {
       cancelled = true;
@@ -76,24 +82,34 @@ export default function App() {
   }, [modelId]);
 
   async function send() {
-    const content = input.trim();
-    if (!content || !engine) return;
+    const userRaw = input.trim();
+    if (!userRaw || !engine) return;
+
+    // Build context if RAG is on
+    let userWithContext = userRaw;
+    if (useRag) {
+      const ctx = makeContext(userRaw, ragIndexRef.current, 3, 1200);
+      if (ctx) {
+        userWithContext =
+          `Use the transportation context below to answer the question. ` +
+          `If the context is insufficient, say so and answer best-effort.\n\n` +
+          `### Context\n${ctx}\n\n` +
+          `### Question\n${userRaw}`;
+      }
+    }
 
     setInput("");
-    // UI state: add user + empty assistant bubble for streaming
     const next = [
       ...messages,
-      { role: "user", content } as ChatMsg,
+      { role: "user", content: userWithContext } as ChatMsg,
       { role: "assistant", content: "" } as ChatMsg,
     ];
     setMessages(next);
     setBusy(true);
 
     try {
-      // IMPORTANT: do NOT send the trailing assistant placeholder to the engine.
-      const apiMessages = next
-        .filter((m) => m.role !== "system")
-        .slice(0, -1); // drop the last assistant placeholder
+      // IMPORTANT: drop the trailing assistant placeholder when calling the API
+      const apiMessages = next.filter((m) => m.role !== "system").slice(0, -1);
 
       const stream = await engine.chat.completions.create({
         stream: true,
@@ -140,7 +156,8 @@ export default function App() {
           <h1>Transport LLM — Edge AI Demo</h1>
           <div className="status">{status}</div>
 
-          <div style={{ marginTop: 8 }}>
+          {/* Model picker (dev-time). We’ll remove at polish time. */}
+          <div style={{ marginTop: 8, display: "flex", gap: 12, justifyContent: "center" }}>
             <label style={{ fontSize: 12, color: "var(--muted)" }}>
               Model:&nbsp;
               <select
@@ -162,6 +179,16 @@ export default function App() {
                 ))}
               </select>
             </label>
+
+            <label style={{ fontSize: 12, color: "var(--muted)", display: "flex", alignItems: "center", gap: 6 }}>
+              <input
+                type="checkbox"
+                checked={useRag}
+                onChange={(e) => setUseRag(e.target.checked)}
+                disabled={busy}
+              />
+              Use RAG context
+            </label>
           </div>
         </header>
 
@@ -182,7 +209,7 @@ export default function App() {
           <div className="input-row">
             <textarea
               ref={inputRef}
-              placeholder={engine ? "Type a message…" : "Loading model…"}
+              placeholder={engine ? "Ask about rail history, signaling, etc…" : "Loading model…"}
               disabled={!engine || busy}
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -199,7 +226,7 @@ export default function App() {
         </main>
 
         <footer className="status">
-          Fully local via WebGPU &nbsp;|&nbsp; No server, no API keys.
+          Fully local via WebGPU &nbsp;|&nbsp; No server, no API keys &nbsp;|&nbsp; RAG v1 (TF-IDF)
         </footer>
       </div>
     </div>

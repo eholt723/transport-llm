@@ -1,0 +1,26 @@
+[
+  {
+    "id": "steam-1804",
+    "title": "Early Steam Locomotives",
+    "source": "history",
+    "text": "The first full-scale working railway steam locomotive was built by Richard Trevithick in 1804. It ran on the Penydarren tramroad in Wales. Early designs were heavy and damaged the track."
+  },
+  {
+    "id": "standard-gauge",
+    "title": "Track Gauge",
+    "source": "standards",
+    "text": "Standard gauge is 1,435 mm (4 ft 8 1⁄2 in). It became dominant in Britain and later internationally due to interoperability incentives."
+  },
+  {
+    "id": "modal-freight",
+    "title": "Freight Modes",
+    "source": "glossary",
+    "text": "Common freight modes include road, rail, maritime, air, and pipelines. Intermodal shipping uses standardized containers moved across multiple modes."
+  },
+  {
+    "id": "signal-blocks",
+    "title": "Rail Signaling",
+    "source": "engineering",
+    "text": "Fixed-block signaling divides track into blocks, authorizing trains to enter only if the block is clear. Moving-block systems use continuous train control to reduce headways."
+  }
+]
