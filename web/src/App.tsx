@@ -142,7 +142,7 @@ export default function App() {
     <div className="app-frame">
       <div className="app-wrap">
         <header className="header">
-          <h1>Transport LLM — Edge AI Demo</h1>
+          <h1>Transportation LLM — Edge AI Demo</h1>
           <div className="status">{status}</div>
         </header>
 
