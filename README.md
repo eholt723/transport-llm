@@ -1,4 +1,4 @@
-# 🚆 Transport LLM — Edge AI Demo
+#  Transport LLM — Edge AI Demo
 
 ### Problem Framing
 
@@ -13,7 +13,7 @@ The goal is to show how a single developer can go end-to-end:
 
 ---
 
-### 🎯 Objectives
+###  Objectives
 
 - Demonstrate an **end-to-end pipeline** from dataset to live demo.  
 - Make the entire system run **on consumer hardware** (no paid APIs or cloud GPUs).  
@@ -22,7 +22,7 @@ The goal is to show how a single developer can go end-to-end:
 
 ---
 
-### 🧠 Project Stages
+###  Project Stages
 
 | Stage | Description | Status |
 |:------|:-------------|:-------|
@@ -38,7 +38,7 @@ The goal is to show how a single developer can go end-to-end:
 
 ---
 
-### 🏗️ Architecture Overview
+###  Architecture Overview
 
 - **Frontend:** React + Vite (TypeScript)  
 - **Model Runtime:** [`@mlc-ai/web-llm`](https://github.com/mlc-ai/web-llm)  
@@ -46,11 +46,3 @@ The goal is to show how a single developer can go end-to-end:
 - **RAG Engine:** In-browser TF-IDF retriever (no backend)  
 - **Deployment:** GitHub Pages (static, free, always-on)
 
-```text
-User → Question
-       ↓
-RAG Retriever → fetch relevant transport docs
-       ↓
-LLM (MLC WebGPU) → generate grounded answer
-       ↓
-Response rendered locally — no server calls
