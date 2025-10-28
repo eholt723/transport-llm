@@ -16,7 +16,7 @@ type ChatMsg = { role: "user" | "assistant" | "system"; content: string };
 const DEFAULT_MODEL_ID = "Llama-3-8B-Instruct-q4f16_1-MLC";
 
 // Base system prompt (concise, transport-focused)
-const BASE_SYSTEM = `You are Transport LLM — a concise assistant about transportation history, terminology, engineering, and standards.
+const BASE_SYSTEM = `You are Transport LLM — a concise assistant focused on rail operations, automotive engineering, intelligent transit, and transport standards.
 If context is provided, ground your answer in it. If the context is insufficient, say so briefly.
 When you use provided context, cite sources by [title]. If a user corrects you, accept the correction politely.`;
 
@@ -27,7 +27,7 @@ export default function App() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMsg[]>([
     { role: "system", content: BASE_SYSTEM },
-    { role: "assistant", content: "Welcome. Ask about rail history, signaling, or standards." },
+    { role: "assistant", content: "Welcome. Ask about rail operations, automotive systems, public transit, or transportation standards." },
   ]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
