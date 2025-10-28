@@ -22,21 +22,6 @@ The goal is to show how a single developer can go end-to-end:
 
 ---
 
-###  Project Stages
-
-| Stage | Description | Status |
-|:------|:-------------|:-------|
-| **1** | Ubuntu + VS Code setup (local dev environment) | ✅ |
-| **2** | GitHub repo + SSH configuration | ✅ |
-| **3** | Vite + React + TypeScript front-end scaffold | ✅ |
-| **4** | File cleanup + layout | ✅ |
-| **5** | Chat app with WebGPU + MLC runtime | ✅ |
-| **6** | RAG v1 — local TF-IDF retriever (no training) | ✅ |
-| **7** | UI polish + GitHub Pages deployment | ✅ |
-| **8 (next)** | Local fine-tuning or small-model adaptation (Colab + quantization) | 🚧 |
-| **9 (future)** | Embedding-based RAG v1.5 + vector search | 🚧 |
-
----
 
 ###  Architecture Overview
 
