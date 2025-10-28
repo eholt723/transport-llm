@@ -1,16 +1,67 @@
-# Node / builds
-node_modules
-dist
-.vite
+# ------------------------------
+# Node / Frontend
+# ------------------------------
+node_modules/
+web/node_modules/
+web/dist/
+web/.vite/
+web/.cache/
+web/.DS_Store
+
+# Build outputs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# OS / editors
+# Vite / Temp
+web/.temp/
+web/.eslintcache
+web/.tsbuildinfo
+
+# ------------------------------
+# Python / Backend / RAG
+# ------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.egg-info/
+.venv/
+env/
+venv/
+build/
+dist/
+
+# Byte-compiled / caches
+.ipynb_checkpoints/
+*.pickle
+*.pkl
+
+# RAG outputs
+web/public/rag/index.json
+web/public/rag/embeddings.f32
+web/public/rag/manifest.json
+data/
+!data/README.md   # (optional) keep placeholder
+
+# Model files / large artifacts
+*.bin
+*.safetensors
+*.pt
+*.ckpt
+*.onnx
+*.zip
+*.tar
+*.tar.gz
+
+# ------------------------------
+# VS Code / OS
+# ------------------------------
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
 .DS_Store
-.vscode/
-
-# dotenv
-.env
-.env.*
-
-# WebGPU / MLC
-mlc-out/
+Thumbs.db

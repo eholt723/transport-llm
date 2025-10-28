@@ -1,8 +1,11 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// GitHub Deploy
 export default defineConfig({
   plugins: [react()],
-  base: "/transport-llm/",
+  server: {
+    host: true,     // expose to Windows host
+    port: 5173,     // fixed port
+    strictPort: true
+  }
 });
