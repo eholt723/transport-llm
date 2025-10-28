@@ -1,11 +1,9 @@
-import type { IndexJson, RetrievalResult } from "./types";
+import type { IndexJson, RetrievalOptions, RetrievalResult } from "./types";
 import { l2Normalize, topKCosine } from "./similarity";
+import { applyDomainWeights, mmr } from "./scorer";
 
-// Lazy-loaded global state
 let _index: IndexJson | null = null;
 let _emb: Float32Array | null = null;
-
-// On-demand transformer pipeline
 let _pipe: any | null = null;
 
 async function ensureIndex(): Promise<void> {
@@ -24,41 +22,69 @@ async function ensureIndex(): Promise<void> {
 
 async function ensureEmbedder(): Promise<void> {
   if (_pipe) return;
-  // @xenova/transformers loads models from CDN and caches locally
   const { pipeline } = await import("@xenova/transformers");
-  _pipe = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2", {
-    quantized: true,
-  });
+  _pipe = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2", { quantized: true });
 }
 
 async function embedQuery(text: string): Promise<Float32Array> {
   await ensureEmbedder();
-  // mean pooling over last hidden states
   const output = await _pipe(text, { pooling: "mean", normalize: true });
-  // output is Float32Array or Tensor-like
   const arr = Array.isArray(output.data) ? new Float32Array(output.data) : (output.data as Float32Array);
-  // already normalized by the pipeline (normalize: true), but keep API consistent
   return arr;
 }
 
 export async function retrieve(
   query: string,
-  k = 5
+  kOrOpts: number | RetrievalOptions = 5
 ): Promise<RetrievalResult> {
   await ensureIndex();
   if (!_index || !_emb) throw new Error("Index not loaded");
+
+  const opts: RetrievalOptions = typeof kOrOpts === "number" ? { k: kOrOpts } : (kOrOpts || {});
+  const k = opts.k ?? 5;
+
   const t0 = performance.now();
-  const q = await embedQuery(query); // dim matches _index.dim
-  // safety: normalize in case upstream changes
-  // Not strictly necessary if normalize:true worked, but harmless
+  const q = await embedQuery(query);
   l2Normalize(q);
-  const hits = topKCosine(q, _emb!, _index!.dim, k);
-  const topK = hits.map(({ index, score }) => ({
-    chunk: _index!.chunks[index],
-    score,
-  }));
+
+  // Get a wider candidate pool to allow filtering + MMR
+  const fetchK = Math.max(k * 4, opts.mmr?.fetchK ?? 40);
+  const rawHits = topKCosine(q, _emb!, _index!.dim, fetchK);
+
+  // Optional domain filtering
+  let filtered = rawHits;
+  if (opts.domains && opts.domains.length > 0) {
+    const allow = new Set(opts.domains.map((d) => d.toLowerCase()));
+    filtered = rawHits.filter(({ index }) => {
+      const dom = (_index!.chunks[index].meta?.domain || "").toLowerCase();
+      return allow.has(dom);
+    });
+  }
+
+  // Apply domain weights
+  let weighted = applyDomainWeights(filtered, _index!.chunks, opts.domainWeights);
+
+  // Diversify with MMR heuristic (optional)
+  if (opts.mmr) {
+    const lam = opts.mmr.lambda ?? 0.7;
+    const kk = k;
+    weighted = mmr(q, _emb!, _index!.dim, weighted, lam, kk);
+  } else {
+    // Fallback: just take top-k by weighted score
+    weighted = weighted.sort((a, b) => b.score - a.score).slice(0, k);
+  }
+
   const elapsedMs = performance.now() - t0;
-  return { query, topK, elapsedMs };
+  return {
+    query,
+    topK: weighted,
+    elapsedMs,
+    applied: {
+      domains: opts.domains,
+      domainWeights: opts.domainWeights,
+      mmr: opts.mmr ? { lambda: opts.mmr.lambda ?? 0.7, fetchK } : undefined,
+    },
+  };
 }
 
 export async function getIndexInfo() {
@@ -69,5 +95,6 @@ export async function getIndexInfo() {
     docs: _index!.doc_count,
     model: _index!.model,
     created_utc: _index!.created_utc,
+    domains: _index!.domains ?? [],
   };
 }

@@ -78,7 +78,12 @@ export default function App() {
     let augmentedUser = userRaw;
     try {
       const k = 5;
-      const ret = await retrieve(userRaw, k);
+      const ret = await retrieve(userRaw, {
+        k,
+        domains: [], // e.g., ["rail","auto"] or leave empty for all
+        domainWeights: { rail: 1.0, auto: 0.95, transit: 0.95, standards: 1.0 },
+        mmr: { lambda: 0.7, fetchK: Math.max(40, k * 4) },
+      });
 
       // 2) Build an augmented prompt within a token budget
       const augmented = buildAugmentedPrompt(userRaw, ret.topK, {
