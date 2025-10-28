@@ -1,4 +1,4 @@
-import React from "react";
+
 import type { Retrieved } from "../../rag/types";
 
 type Props = {
