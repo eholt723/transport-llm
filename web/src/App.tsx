@@ -23,7 +23,8 @@ When you use provided context, cite sources by [title]. If a user corrects you, 
 export default function App() {
   const [engine, setEngine] = useState<MLCEngineInterface | null>(null);
   const [status, setStatus] = useState("Loading model…");
-  const [busy, setBusy] = useState(true);
+  // "busy" == actively generating a response (not model init)
+  const [busy, setBusy] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMsg[]>([
     { role: "system", content: BASE_SYSTEM },
@@ -38,16 +39,21 @@ export default function App() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages]);
 
-  // Keep cursor focus when ready
+  // Focus input on initial mount
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  // Re-focus after finishing a generation (when busy flips to false)
   useEffect(() => {
     if (!busy) inputRef.current?.focus();
   }, [busy]);
 
-  // Initialize the MLC engine once
+  // Initialize the MLC engine once, but do NOT block typing
   useEffect(() => {
     let cancelled = false;
+
     (async () => {
-      setBusy(true);
       try {
         const e = await CreateMLCEngine(DEFAULT_MODEL_ID, {
           initProgressCallback: (p: InitProgressReport) => setStatus(p.text),
@@ -60,10 +66,9 @@ export default function App() {
         const msg = `Init error: ${err?.message ?? String(err)}`;
         setStatus(msg);
         setMessages((m) => [...m, { role: "assistant", content: msg }]);
-      } finally {
-        if (!cancelled) setBusy(false);
       }
     })();
+
     return () => {
       cancelled = true;
     };
@@ -71,10 +76,10 @@ export default function App() {
 
   async function send() {
     const userRaw = input.trim();
+    // Don't send until model is ready
     if (!userRaw || !engine) return;
 
     // 1) Retrieve top-k chunks using the browser-side index
-    //    (requires web/public/rag/{index.json,embeddings.f32,manifest.json})
     let augmentedUser = userRaw;
     try {
       const k = 5;
@@ -159,6 +164,8 @@ export default function App() {
     }
   }
 
+  const canSend = !!engine && !busy && !!input.trim();
+
   return (
     <div className="app-frame">
       <div className="app-wrap">
@@ -184,20 +191,20 @@ export default function App() {
           <div className="input-row">
             <textarea
               ref={inputRef}
-              placeholder={engine ? "Ask about rail history, signaling, etc…" : "Loading model…"}
-              disabled={!engine || busy}
+              placeholder={engine ? "Ask about rail history, signaling, etc…" : "Model loading… you can still type"}
+              disabled={busy}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKeyDown}
             />
-            <button className="button" disabled={!engine || busy || !input.trim()} onClick={send}>
+            <button className="button" disabled={!canSend} onClick={send}>
               {busy ? "…" : "Send"}
             </button>
           </div>
         </main>
 
         <footer className="status">
-          Fully local via WebGPU · No server · RAG v1 enabled
+          Fully local via WebGPU · No server · RAG v1 enabled · Created by Eric Holt
         </footer>
       </div>
     </div>

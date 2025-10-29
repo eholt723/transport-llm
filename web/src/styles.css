@@ -12,7 +12,8 @@ html, body, #root { height: 100%; margin: 0; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, "Noto Sans";
+  /* Use Roboto as primary font with sensible fallbacks */
+  font-family: "Roboto", system-ui, -apple-system, "Segoe UI", Ubuntu, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
 }
 
 /* Outer white border around the whole viewport */
