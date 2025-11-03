@@ -52,7 +52,36 @@ data/
 *.pt
 *.ckpt
 *.onnx
-*.zip
+*.zip# RAG outputs
+web/public/rag/index.json
+web/public/rag/embeddings.f32
+web/public/rag/manifest.json
+data/
+!data/README.md
+
+# Node/Build
+node_modules/
+web/node_modules/
+web/dist/
+web/.vite/
+web/.temp/
+web/.eslintcache
+web/.tsbuildinfo
+
+# Python env & caches
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# OS/Editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
 *.tar
 *.tar.gz
 
