@@ -200,7 +200,7 @@ export default function App() {
         </main>
 
         <footer className="status">
-          Fully local via WebGPU · No server · RAG v1 enabled · Created by Eric Holt
+          Fully local via WebGPU · No server · RAG v2 enabled · Created by Eric Holt
         </footer>
       </div>
     </div>
