@@ -18,11 +18,9 @@ export function applyDomainWeights(
   });
 }
 
-// Maximal Marginal Relevance diversification (heuristic version)
-// This uses doc_id/title redundancy instead of full embedding vectors
-// to keep it fast in-browser.
+
 export function mmr(
-  _queryVec: Float32Array, // unused in this simplified heuristic
+  _queryVec: Float32Array, 
   _emb: Float32Array,
   _dim: number,
   candidates: Retrieved[],
