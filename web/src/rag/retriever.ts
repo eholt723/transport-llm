@@ -47,7 +47,7 @@ export async function retrieve(
   const q = await embedQuery(query);
   l2Normalize(q);
 
-  // Get a wider candidate pool to allow filtering + MMR
+  // wider candidate pool
   const fetchK = Math.max(k * 4, opts.mmr?.fetchK ?? 40);
   const rawHits = topKCosine(q, _emb!, _index!.dim, fetchK);
 
@@ -64,13 +64,13 @@ export async function retrieve(
   // Apply domain weights
   let weighted = applyDomainWeights(filtered, _index!.chunks, opts.domainWeights);
 
-  // Diversify with MMR heuristic (optional)
+  // Diversify with MMR heuristic
   if (opts.mmr) {
     const lam = opts.mmr.lambda ?? 0.7;
     const kk = k;
     weighted = mmr(q, _emb!, _index!.dim, weighted, lam, kk);
   } else {
-    // Fallback: just take top-k by weighted score
+    // Fallback
     weighted = weighted.sort((a, b) => b.score - a.score).slice(0, k);
   }
 

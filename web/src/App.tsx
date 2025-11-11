@@ -7,15 +7,14 @@ import {
 
 import { retrieve } from "./rag/retriever";
 import { buildAugmentedPrompt } from "./rag/augment";
-// Optional: quick retrieval sanity-check UI
-// import DebugPanel from "./rag/debug/DebugPanel";
+
 
 type ChatMsg = { role: "user" | "assistant" | "system"; content: string };
 
-// Hardcode your production model (simple and stable)
+// Hardcode production model
 const DEFAULT_MODEL_ID = "Llama-3-8B-Instruct-q4f16_1-MLC";
 
-// Base system prompt (concise, transport-focused)
+// Base system prompt
 const BASE_SYSTEM = `You are Transport LLM — a concise assistant focused on rail operations, automotive engineering, intelligent transit, and transport standards.
 If context is provided, ground your answer in it. If the context is insufficient, say so briefly.
 When you use provided context, cite sources by [title]. If a user corrects you, accept the correction politely.`;
@@ -23,33 +22,33 @@ When you use provided context, cite sources by [title]. If a user corrects you, 
 export default function App() {
   const [engine, setEngine] = useState<MLCEngineInterface | null>(null);
   const [status, setStatus] = useState("Loading model…");
-  // "busy" == actively generating a response (not model init)
+  // "busy"
   const [busy, setBusy] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMsg[]>([
     { role: "system", content: BASE_SYSTEM },
-    { role: "assistant", content: "Welcome. Ask about rail operations, automotive systems, public transit, or transportation standards." },
+    { role: "assistant", content: "Welcome. I am fine-tuned in rail operations, automotive systems, public transit, or transportation standards." },
   ]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-scroll on new messages
+  // Auto-scroll 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages]);
 
-  // Focus input on initial mount
+  // Focus input
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  // Re-focus after finishing a generation (when busy flips to false)
+  // Re-focus 
   useEffect(() => {
     if (!busy) inputRef.current?.focus();
   }, [busy]);
 
-  // Initialize the MLC engine once, but do NOT block typing
+  // Initialize MLC 
   useEffect(() => {
     let cancelled = false;
 
@@ -92,15 +91,15 @@ export default function App() {
 
       // 2) Build an augmented prompt within a token budget
       const augmented = buildAugmentedPrompt(userRaw, ret.topK, {
-        maxTokens: 1200,         // adjust to fit your model's context budget
-        charsPerToken: 4,        // heuristic
+        maxTokens: 1200,         
+        charsPerToken: 4,        
         header: "Context (use for citations):",
       });
 
-      // 3) Use the augmented prompt as the final user message for generation
+      // 3) Use the augmented prompt 
       augmentedUser = augmented;
     } catch (e: any) {
-      // If retrieval fails for any reason, proceed without augmentation
+      // If retrieval fails 
       console.warn("RAG retrieval failed:", e);
     }
 
@@ -109,16 +108,13 @@ export default function App() {
     const uiNext: ChatMsg[] = [
       ...messages,
       { role: "user", content: userRaw },
-      { role: "assistant", content: "" }, // placeholder for streaming
+      { role: "assistant", content: "" }, 
     ];
     setMessages(uiNext);
     setBusy(true);
 
     try {
-      // Compose the API messages:
-      // - exactly ONE system (BASE_SYSTEM)
-      // - prior user/assistant turns (no system)
-      // - augmented user last
+          
       const prior = uiNext.filter((m) => m.role !== "system").slice(0, -1);
       const apiMessages: ChatMsg[] = [
         { role: "system", content: BASE_SYSTEM },

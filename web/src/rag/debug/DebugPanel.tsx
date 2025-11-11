@@ -8,7 +8,7 @@ export default function DebugPanel() {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<any>(null);
   const [busy, setBusy] = useState(false);
-  const [domains, setDomains] = useState<string[]>([]); // selected filters
+  const [domains, setDomains] = useState<string[]>([]); 
 
   useEffect(() => {
     getIndexInfo().then(setInfo).catch(console.error);
