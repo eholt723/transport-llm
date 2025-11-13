@@ -23,6 +23,8 @@ export default function App() {
   const [status, setStatus] = useState("Loading model…");
   const [busy, setBusy] = useState(false);
   const [input, setInput] = useState("");
+  const [runtimeError, setRuntimeError] = useState<string | null>(null);
+
   const [messages, setMessages] = useState<ChatMsg[]>([
     { role: "system", content: BASE_SYSTEM },
     {
@@ -35,8 +37,9 @@ export default function App() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Flag for init error status
+  // Flags
   const hasInitError = status.startsWith("Init error");
+  const hasRuntimeError = !!runtimeError;
 
   // Auto-scroll
   useEffect(() => {
@@ -80,11 +83,10 @@ export default function App() {
 
   async function send() {
     const userRaw = input.trim();
-    // Don't send until model is ready
     if (!userRaw || !engine) return;
 
-    // 1) Retrieve top-k chunks using the browser-side index
     let augmentedUser = userRaw;
+
     try {
       const k = 5;
       const ret = await retrieve(userRaw, {
@@ -94,21 +96,17 @@ export default function App() {
         mmr: { lambda: 0.7, fetchK: Math.max(40, k * 4) },
       });
 
-      // 2) Build an augmented prompt within a token budget
       const augmented = buildAugmentedPrompt(userRaw, ret.topK, {
         maxTokens: 1200,
         charsPerToken: 4,
         header: "Context (use for citations):",
       });
 
-      // 3) Use the augmented prompt
       augmentedUser = augmented;
     } catch (e: any) {
-      // If retrieval fails
       console.warn("RAG retrieval failed:", e);
     }
 
-    // UI: show only the user's plain question
     setInput("");
     const uiNext: ChatMsg[] = [
       ...messages,
@@ -148,9 +146,16 @@ export default function App() {
         }
       }
     } catch (err: any) {
+      console.error("Runtime error from WebLLM:", err);
+
+      const friendly =
+        "The model runtime encountered an error and stopped. This usually means your device or browser does not fully support WebGPU for this model, or ran out of GPU memory. Try Chrome or Edge on a desktop/laptop with a modern GPU. Mobile browsers may not support WebGPU.";
+
+      setRuntimeError(friendly);
+
       setMessages((curr) => [
         ...curr,
-        { role: "assistant", content: `Error: ${err?.message ?? String(err)}` },
+        { role: "assistant", content: friendly },
       ]);
     } finally {
       setBusy(false);
@@ -174,8 +179,8 @@ export default function App() {
           <div className="status">{status}</div>
         </header>
 
-        {/* WebGPU / init error disclaimer */}
-        {hasInitError && (
+        {/* Unified WebGPU warning banner */}
+        {(hasInitError || hasRuntimeError) && (
           <div className="warning-banner">
             Your device may not support WebGPU.
             <br />
@@ -188,9 +193,6 @@ export default function App() {
         )}
 
         <main className="card chat">
-          {/* Optional debug panel for RAG sanity checks */}
-          {/* <div className="mb-3"><DebugPanel /></div> */}
-
           <div className="chat-scroll" ref={scrollRef}>
             {messages
               .filter((m) => m.role !== "system")

@@ -54,3 +54,18 @@ This pivot reflects real engineering decision-making: choosing the most reliable
 - **RAG Engine:** In-browser TF-IDF retrieval (no backend services)  
 - **Deployment:** GitHub Pages (static, lightweight, always online)
 
+---
+
+## Mobile & Device Compatibility Notice
+
+WebGPU is an emerging web standard and is not yet fully supported across all devices.  
+This demo relies on WebGPU to run the LLM entirely in the browser, without a server.
+
+As a result:
+
+- **Most mobile browsers do not yet support WebGPU**, including iOS Safari and mobile Chrome.  
+- Some older or integrated GPUs on laptops may also lack necessary WebGPU capabilities.  
+- If WebGPU is unavailable or GPU resources are insufficient, the demo may show initialization errors or the browser may terminate the tab.
+
+For the best experience, use **Chrome or Edge on a modern desktop or laptop GPU**.
+
