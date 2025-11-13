@@ -27,7 +27,7 @@ export default function App() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMsg[]>([
     { role: "system", content: BASE_SYSTEM },
-    { role: "assistant", content: "Welcome. I am fine-tuned in rail operations, automotive systems, public transit, or transportation standards." },
+    { role: "assistant", content: "Welcome. I’m designed to assist with rail operations, vehicle systems, public transit engineering, and transportation standards." },
   ]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -200,7 +200,7 @@ export default function App() {
         </main>
 
         <footer className="status">
-          Fully local via WebGPU · No server · RAG v2 enabled · Created by Eric Holt
+          WebGPU accelerated · No server · RAG v2 enabled · Created by Eric Holt
         </footer>
       </div>
     </div>
