@@ -8,7 +8,6 @@ import {
 import { retrieve } from "./rag/retriever";
 import { buildAugmentedPrompt } from "./rag/augment";
 
-
 type ChatMsg = { role: "user" | "assistant" | "system"; content: string };
 
 // Hardcode production model
@@ -22,18 +21,24 @@ When you use provided context, cite sources by [title]. If a user corrects you, 
 export default function App() {
   const [engine, setEngine] = useState<MLCEngineInterface | null>(null);
   const [status, setStatus] = useState("Loading model…");
-  // "busy"
   const [busy, setBusy] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMsg[]>([
     { role: "system", content: BASE_SYSTEM },
-    { role: "assistant", content: "Welcome. I’m designed to assist with rail operations, vehicle systems, public transit engineering, and transportation standards." },
+    {
+      role: "assistant",
+      content:
+        "Welcome. I’m designed to assist with rail operations, vehicle systems, public transit engineering, and transportation standards.",
+    },
   ]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-scroll 
+  // Flag for init error status
+  const hasInitError = status.startsWith("Init error");
+
+  // Auto-scroll
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages]);
@@ -43,12 +48,12 @@ export default function App() {
     inputRef.current?.focus();
   }, []);
 
-  // Re-focus 
+  // Re-focus
   useEffect(() => {
     if (!busy) inputRef.current?.focus();
   }, [busy]);
 
-  // Initialize MLC 
+  // Initialize MLC
   useEffect(() => {
     let cancelled = false;
 
@@ -84,22 +89,22 @@ export default function App() {
       const k = 5;
       const ret = await retrieve(userRaw, {
         k,
-        domains: [], // e.g., ["rail","auto"] or leave empty for all
+        domains: [],
         domainWeights: { rail: 1.0, auto: 0.95, transit: 0.95, standards: 1.0 },
         mmr: { lambda: 0.7, fetchK: Math.max(40, k * 4) },
       });
 
       // 2) Build an augmented prompt within a token budget
       const augmented = buildAugmentedPrompt(userRaw, ret.topK, {
-        maxTokens: 1200,         
-        charsPerToken: 4,        
+        maxTokens: 1200,
+        charsPerToken: 4,
         header: "Context (use for citations):",
       });
 
-      // 3) Use the augmented prompt 
+      // 3) Use the augmented prompt
       augmentedUser = augmented;
     } catch (e: any) {
-      // If retrieval fails 
+      // If retrieval fails
       console.warn("RAG retrieval failed:", e);
     }
 
@@ -108,17 +113,16 @@ export default function App() {
     const uiNext: ChatMsg[] = [
       ...messages,
       { role: "user", content: userRaw },
-      { role: "assistant", content: "" }, 
+      { role: "assistant", content: "" },
     ];
     setMessages(uiNext);
     setBusy(true);
 
     try {
-          
       const prior = uiNext.filter((m) => m.role !== "system").slice(0, -1);
       const apiMessages: ChatMsg[] = [
         { role: "system", content: BASE_SYSTEM },
-        ...prior.slice(0, -1), // all previous user/assistant messages
+        ...prior.slice(0, -1),
         { role: "user", content: augmentedUser },
       ];
 
@@ -170,13 +174,26 @@ export default function App() {
           <div className="status">{status}</div>
         </header>
 
+        {/* WebGPU / init error disclaimer */}
+        {hasInitError && (
+          <div className="warning-banner">
+            Your device may not support WebGPU.
+            <br />
+            This demo requires a WebGPU-compatible GPU and browser.
+            <br />
+            If you see initialization errors, try Chrome or Edge on a desktop/laptop with a modern GPU.
+            <br />
+            Mobile browsers may not support WebGPU.
+          </div>
+        )}
+
         <main className="card chat">
           {/* Optional debug panel for RAG sanity checks */}
           {/* <div className="mb-3"><DebugPanel /></div> */}
 
           <div className="chat-scroll" ref={scrollRef}>
             {messages
-              .filter((m) => m.role !== "system") // hide system content from the UI
+              .filter((m) => m.role !== "system")
               .map((m, i) => (
                 <div key={i} className={`msg ${m.role === "user" ? "user" : "assistant"}`}>
                   {m.content}
@@ -187,7 +204,9 @@ export default function App() {
           <div className="input-row">
             <textarea
               ref={inputRef}
-              placeholder={engine ? "Ask about rail history, signaling, etc…" : "Model loading… you can still type"}
+              placeholder={
+                engine ? "Ask about rail history, signaling, etc…" : "Model loading… you can still type"
+              }
               disabled={busy}
               value={input}
               onChange={(e) => setInput(e.target.value)}
