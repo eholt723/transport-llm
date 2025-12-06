@@ -42,7 +42,7 @@ Because of this, the project pivoted to a more practical and stable architecture
 - Implement a **local RAG engine** to supply domain context.  
 - Continue exploring full fine-tuning in a future project through **Hugging Face / PEFT / LoRA**, where training workflows are mature and better documented.
 
-This pivot reflects real engineering decision-making: choosing the most reliable and maintainable path while still meeting functional goals.
+This pivot was made choosing the most reliable and maintainable path while still meeting functional goals.
 
 ---
 
