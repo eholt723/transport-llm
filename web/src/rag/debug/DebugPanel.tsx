@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { retrieve, getIndexInfo } from "../retriever";
+import { retrieve, getIndexInfo, type IndexInfo } from "../retriever";
+import type { RetrievalResult } from "../types";
 import { Citations } from "../components/Citations";
 import Filters from "../components/Filters";
+import { DOMAIN_WEIGHTS } from "../../constants";
 
 export default function DebugPanel() {
-  const [info, setInfo] = useState<any>(null);
+  const [info, setInfo] = useState<IndexInfo | null>(null);
   const [q, setQ] = useState("");
-  const [hits, setHits] = useState<any>(null);
+  const [hits, setHits] = useState<RetrievalResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [domains, setDomains] = useState<string[]>([]); 
 
@@ -20,7 +22,7 @@ export default function DebugPanel() {
       const res = await retrieve(q, {
         k: 5,
         domains: domains.length ? domains : undefined,
-        domainWeights: { rail: 1.0, auto: 0.95, transit: 0.95, standards: 1.0 },
+        domainWeights: DOMAIN_WEIGHTS,
         mmr: { lambda: 0.7, fetchK: 40 },
       });
       setHits(res);

@@ -1,10 +1,20 @@
+import type { FeatureExtractionPipeline } from "@xenova/transformers";
 import type { IndexJson, RetrievalOptions, RetrievalResult } from "./types";
 import { l2Normalize, topKCosine } from "./similarity";
-import { applyDomainWeights, mmr } from "./scorer";
+import { applyDomainWeights, diversify } from "./scorer";
+
+export type IndexInfo = {
+  dim: number;
+  chunks: number;
+  docs: number;
+  model: string;
+  created_utc: number;
+  domains: string[];
+};
 
 let _index: IndexJson | null = null;
 let _emb: Float32Array | null = null;
-let _pipe: any | null = null;
+let _pipe: FeatureExtractionPipeline | null = null;
 
 async function ensureIndex(): Promise<void> {
   if (_index && _emb) return;
@@ -28,8 +38,10 @@ async function ensureEmbedder(): Promise<void> {
 
 async function embedQuery(text: string): Promise<Float32Array> {
   await ensureEmbedder();
+  if (!_pipe) throw new Error("Embedder not initialized");
   const output = await _pipe(text, { pooling: "mean", normalize: true });
-  const arr = Array.isArray(output.data) ? new Float32Array(output.data) : (output.data as Float32Array);
+  const raw = output.data;
+  const arr = raw instanceof Float32Array ? raw : new Float32Array(raw as number[]);
   return arr;
 }
 
@@ -64,11 +76,11 @@ export async function retrieve(
   // Apply domain weights
   let weighted = applyDomainWeights(filtered, _index!.chunks, opts.domainWeights);
 
-  // Diversify with MMR heuristic
+  // Diversify with heuristic deduplication
   if (opts.mmr) {
     const lam = opts.mmr.lambda ?? 0.7;
     const kk = k;
-    weighted = mmr(q, _emb!, _index!.dim, weighted, lam, kk);
+    weighted = diversify(q, _emb!, _index!.dim, weighted, lam, kk);
   } else {
     // Fallback
     weighted = weighted.sort((a, b) => b.score - a.score).slice(0, k);

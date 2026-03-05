@@ -48,11 +48,51 @@ This pivot was made choosing the most reliable and maintainable path while still
 
 ### Architecture Overview
 
-- **Frontend:** React + Vite (TypeScript)  
-- **Model Runtime:** [`@mlc-ai/web-llm`](https://github.com/mlc-ai/web-llm)  
-  - Executes the model entirely in the browser using WebGPU  
-- **RAG Engine:** In-browser TF-IDF retrieval (no backend services)  
-- **Deployment:** GitHub Pages (static, lightweight, always online)
+- **Frontend:** React + Vite (TypeScript)
+- **Model Runtime:** [`@mlc-ai/web-llm`](https://github.com/mlc-ai/web-llm) — executes Llama 3 8B entirely in the browser using WebGPU
+- **RAG Engine:** Semantic retrieval using `@xenova/transformers` (all-MiniLM-L6-v2 embeddings) with domain filtering, domain weighting, and heuristic diversification. Index is pre-built offline with a Python script and served as static files.
+- **Deployment:** GitHub Pages (static, no backend, always online)
+
+---
+
+### Project Structure
+
+```
+web/          React + TypeScript + Vite frontend
+scripts/      Python RAG index builder (rag_prep.py)
+.github/      GitHub Actions deploy workflow
+```
+
+---
+
+### Running Locally
+
+```bash
+cd web
+npm install
+npm run dev      # http://localhost:5173/transport-llm/
+```
+
+---
+
+### Building the RAG Index
+
+The RAG index lives in `web/public/rag/` and is built offline. To rebuild with new source documents:
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install sentence-transformers numpy
+
+python scripts/rag_prep.py \
+  --in data/ \
+  --out web/public/rag/ \
+  --model sentence-transformers/all-MiniLM-L6-v2 \
+  --chunk-size 600 \
+  --chunk-overlap 120 \
+  --domains rail,auto,transit,standards
+```
+
+Supported input formats: `.txt`, `.md`, `.jsonl`. Domain is inferred from the parent directory name or filename prefix (e.g. `auto_powertrains.md` → domain `auto`).
 
 ---
 

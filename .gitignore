@@ -62,3 +62,11 @@ data/
 
 .DS_Store
 Thumbs.db
+
+# ------------------------------
+# Claude / Secrets
+# ------------------------------
+.env
+.env.*
+CLAUDE.md
+.claude/

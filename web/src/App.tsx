@@ -7,11 +7,9 @@ import {
 
 import { retrieve } from "./rag/retriever";
 import { buildAugmentedPrompt } from "./rag/augment";
+import { DEFAULT_MODEL_ID, DOMAIN_WEIGHTS } from "./constants";
 
 type ChatMsg = { role: "user" | "assistant" | "system"; content: string };
-
-// Hardcode production model
-const DEFAULT_MODEL_ID = "Llama-3-8B-Instruct-q4f16_1-MLC";
 
 // Base system prompt
 const BASE_SYSTEM = `You are Transport LLM — a concise assistant focused on rail operations, automotive engineering, intelligent transit, and transport standards.
@@ -92,7 +90,7 @@ export default function App() {
       const ret = await retrieve(userRaw, {
         k,
         domains: [],
-        domainWeights: { rail: 1.0, auto: 0.95, transit: 0.95, standards: 1.0 },
+        domainWeights: DOMAIN_WEIGHTS,
         mmr: { lambda: 0.7, fetchK: Math.max(40, k * 4) },
       });
 

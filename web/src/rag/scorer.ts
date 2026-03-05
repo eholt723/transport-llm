@@ -19,8 +19,8 @@ export function applyDomainWeights(
 }
 
 
-export function mmr(
-  _queryVec: Float32Array, 
+export function diversify(
+  _queryVec: Float32Array,
   _emb: Float32Array,
   _dim: number,
   candidates: Retrieved[],
@@ -42,9 +42,9 @@ export function mmr(
         if (s.chunk.doc_id === cand.chunk.doc_id) redundancy = Math.max(redundancy, 0.5);
         if (s.chunk.title === cand.chunk.title) redundancy = Math.max(redundancy, 0.3);
       }
-      const mmrScore = lambda * cand.score - (1 - lambda) * redundancy;
-      if (mmrScore > bestScore) {
-        bestScore = mmrScore;
+      const diversifyScore = lambda * cand.score - (1 - lambda) * redundancy;
+      if (diversifyScore > bestScore) {
+        bestScore = diversifyScore;
         bestIdx = p;
       }
     }
