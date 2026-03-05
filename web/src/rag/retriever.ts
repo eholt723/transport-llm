@@ -16,11 +16,13 @@ let _index: IndexJson | null = null;
 let _emb: Float32Array | null = null;
 let _pipe: FeatureExtractionPipeline | null = null;
 
+const RAG_BASE = `${import.meta.env.BASE_URL}rag`.replace(/\/\//g, "/");
+
 async function ensureIndex(): Promise<void> {
   if (_index && _emb) return;
   const [idxResp, embResp] = await Promise.all([
-    fetch("/rag/index.json"),
-    fetch("/rag/embeddings.f32"),
+    fetch(`${RAG_BASE}/index.json`),
+    fetch(`${RAG_BASE}/embeddings.f32`),
   ]);
   if (!idxResp.ok || !embResp.ok) {
     throw new Error("Failed to load RAG index files from /rag/");

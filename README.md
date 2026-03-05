@@ -108,6 +108,14 @@ Supported input formats: `.txt`, `.md`, `.jsonl`. Domain is inferred from the pa
 
 ---
 
+## First Load
+
+The model (~4 GB) is downloaded from a CDN on first visit and cached in the browser. This is a one-time cost — subsequent visits load from cache in seconds.
+
+A progress bar tracks the download. Do not close the tab until loading completes.
+
+---
+
 ## Mobile & Device Compatibility Notice
 
 WebGPU is an emerging web standard and is not yet fully supported across all devices.  

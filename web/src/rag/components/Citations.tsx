@@ -1,4 +1,3 @@
-
 import type { Retrieved } from "../../rag/types";
 
 type Props = {
@@ -9,14 +8,15 @@ type Props = {
 export function Citations({ items, max = 5 }: Props) {
   const shown = items.slice(0, max);
   return (
-    <div className="mt-3 space-y-2">
+    <div className="citations-list">
       {shown.map(({ chunk, score }) => (
-        <div key={chunk.id} className="rounded-2xl p-3 border">
-          <div className="text-sm font-semibold">
-            {chunk.title} <span className="opacity-60">({score.toFixed(3)})</span>
+        <div key={chunk.id} className="citation-item">
+          <div className="citation-title">
+            {chunk.title}
+            <span className="citation-score">{score.toFixed(3)}</span>
           </div>
-          <div className="text-xs opacity-70">{chunk.source} • #{chunk.offset}</div>
-          <div className="text-sm mt-2 line-clamp-4 whitespace-pre-wrap">{chunk.text}</div>
+          <div className="citation-meta">{chunk.source} · chunk {chunk.offset}</div>
+          <div className="citation-text">{chunk.text}</div>
         </div>
       ))}
     </div>

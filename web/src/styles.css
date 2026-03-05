@@ -51,6 +51,17 @@ body {
   margin-top: 4px;
 }
 
+/* Model load progress bar */
+.load-bar-track {
+  margin-top: 8px; height: 4px; border-radius: 2px;
+  background: #1e2830; overflow: hidden;
+}
+.load-bar-fill {
+  height: 100%; border-radius: 2px;
+  background: #4a90c4;
+  transition: width 0.3s ease;
+}
+
 .chat { display: flex; flex-direction: column; gap: 12px; height: 100%; }
 .chat-scroll { flex: 1 1 auto; overflow: auto; padding-right: 4px; }
 
@@ -76,3 +87,79 @@ body {
   border: 1px solid #334150; background: #0f141a; color: var(--text); cursor: pointer;
 }
 .button[disabled] { opacity: 0.6; cursor: not-allowed; }
+
+/* Input action column (Send + Clear stacked, each fills half the textarea height) */
+.input-actions { display: flex; flex-direction: column; gap: 6px; align-self: stretch; }
+.input-actions .button { flex: 1; padding: 0 20px; }
+.clear-btn { font-size: 13px; opacity: 0.7; }
+.clear-btn:hover:not([disabled]) { opacity: 1; }
+
+/* Markdown prose inside assistant messages */
+.prose { line-height: 1.5; }
+.prose p { margin: 0 0 0.5em; }
+.prose p:last-child { margin-bottom: 0; }
+.prose ul, .prose ol { margin: 0.25em 0 0.5em 1.25em; padding: 0; }
+.prose li { margin-bottom: 0.2em; }
+.prose code {
+  background: #0f141a; border: 1px solid #293240;
+  border-radius: 4px; padding: 1px 5px; font-size: 0.85em;
+}
+.prose pre {
+  background: #0f141a; border: 1px solid #293240; border-radius: 8px;
+  padding: 10px 12px; overflow-x: auto; margin: 0.5em 0;
+}
+.prose pre code { background: none; border: none; padding: 0; }
+.prose h1, .prose h2, .prose h3, .prose h4 { margin: 0.75em 0 0.25em; font-weight: 600; }
+.prose strong { font-weight: 600; }
+.prose blockquote {
+  border-left: 3px solid #334150; margin: 0.5em 0; padding-left: 0.75em;
+  color: var(--muted);
+}
+
+/* Citations below assistant messages */
+.citations-wrap { margin-top: 8px; }
+.citations-toggle {
+  background: none; border: 1px solid #334150; border-radius: 8px;
+  color: var(--muted); font-size: 11px; padding: 3px 10px; cursor: pointer;
+}
+.citations-toggle:hover { color: var(--text); border-color: #55687a; }
+.citations-list { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+.citation-item {
+  border: 1px solid #242b33; border-radius: 10px; padding: 10px 12px;
+  background: #0f141a;
+}
+.citation-title { font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; }
+.citation-score { opacity: 0.5; font-weight: 400; }
+.citation-meta { font-size: 11px; color: var(--muted); margin: 2px 0 6px; }
+.citation-text { font-size: 12px; line-height: 1.4; max-height: 80px; overflow: hidden; color: var(--text); }
+
+/* Filter chips (DebugPanel / Filters component) */
+.filter-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.filter-chip {
+  padding: 3px 12px; border: 1px solid #334150; border-radius: 20px;
+  background: none; color: var(--muted); font-size: 12px; cursor: pointer;
+}
+.filter-chip.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+.filter-chip:hover:not(.active) { color: var(--text); border-color: #55687a; }
+.filter-empty { font-size: 12px; color: var(--muted); }
+
+/* DebugPanel */
+.debug-panel {
+  border: 1px solid #242b33; border-radius: 14px; padding: 14px;
+  background: var(--panel); display: flex; flex-direction: column; gap: 10px;
+}
+.debug-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.debug-info { font-size: 12px; color: var(--muted); }
+.debug-filters { }
+.debug-search-row { display: flex; gap: 8px; }
+.debug-input {
+  flex: 1; border: 1px solid #334150; border-radius: 10px;
+  background: #0f141a; color: var(--text); padding: 8px 12px; font-size: 13px;
+}
+.debug-results-meta { font-size: 11px; color: var(--muted); }
+
+/* Warning banner */
+.warning-banner {
+  background: #2a1a10; border: 1px solid #6b3a1e; border-radius: 12px;
+  padding: 12px 16px; font-size: 13px; line-height: 1.5; color: #e8b08a;
+}
