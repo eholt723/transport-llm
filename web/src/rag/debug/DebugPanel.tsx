@@ -10,7 +10,7 @@ export default function DebugPanel() {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<RetrievalResult | null>(null);
   const [busy, setBusy] = useState(false);
-  const [domains, setDomains] = useState<string[]>([]); 
+  const [domains, setDomains] = useState<string[]>([]);
 
   useEffect(() => {
     getIndexInfo().then(setInfo).catch(console.error);
@@ -32,36 +32,36 @@ export default function DebugPanel() {
   }
 
   return (
-    <div className="border rounded-2xl p-4">
-      <div className="text-sm opacity-70">RAG index</div>
+    <div className="debug-panel">
+      <div className="debug-label">RAG index</div>
       {info && (
-        <div className="text-sm mb-2">
+        <div className="debug-info">
           dim={info.dim}, chunks={info.chunks}, docs={info.docs}, model={info.model}
         </div>
       )}
-      <div className="mb-3">
+      <div className="debug-filters">
         <Filters
           available={info?.domains || []}
           selected={domains}
           onChange={setDomains}
         />
       </div>
-      <div className="mt-1 flex gap-2">
+      <div className="debug-search-row">
         <input
-          className="border rounded-xl p-2 flex-1"
+          className="debug-input"
           placeholder="Try a question…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
-        <button className="border rounded-xl px-3" onClick={onSearch} disabled={busy || !q}>
+        <button className="button" onClick={onSearch} disabled={busy || !q}>
           {busy ? "Searching…" : "Search"}
         </button>
       </div>
       {hits && (
         <>
-          <div className="text-sm mt-3 opacity-70">
+          <div className="debug-results-meta">
             {hits.topK.length} results in {hits.elapsedMs.toFixed(1)} ms
-            {hits.applied.domains?.length ? ` • domains=${hits.applied.domains.join(",")}` : ""}
+            {hits.applied.domains?.length ? ` · domains=${hits.applied.domains.join(",")}` : ""}
           </div>
           <Citations items={hits.topK} />
         </>

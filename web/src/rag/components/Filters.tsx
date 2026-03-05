@@ -16,13 +16,13 @@ export default function Filters({ available, selected, onChange }: Props) {
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="filter-chips">
       {avail.map((d) => {
         const active = selected.map((x) => x.toLowerCase()).includes(d);
         return (
           <button
             key={d}
-            className={`px-3 py-1 border rounded-2xl text-sm ${active ? "bg-black text-white" : ""}`}
+            className={`filter-chip${active ? " active" : ""}`}
             onClick={() => toggle(d)}
             type="button"
             title={`Filter: ${d}`}
@@ -31,7 +31,7 @@ export default function Filters({ available, selected, onChange }: Props) {
           </button>
         );
       })}
-      {avail.length === 0 && <span className="text-sm opacity-60">No domain metadata</span>}
+      {avail.length === 0 && <span className="filter-empty">No domain metadata</span>}
     </div>
   );
 }

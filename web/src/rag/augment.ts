@@ -19,10 +19,8 @@ export function buildAugmentedPrompt(
   const footer = opts.footer ?? "";
 
   const citeBlockLines: string[] = [];
-  for (const { chunk, score } of retrieved) {
-    citeBlockLines.push(
-      `### [${chunk.title}] (score=${score.toFixed(3)})\n${chunk.text}`
-    );
+  for (const { chunk } of retrieved) {
+    citeBlockLines.push(`### [${chunk.title}]\n${chunk.text}`);
   }
 
   const base = `${header}\n\n${citeBlockLines.join("\n\n")}\n\nUser question: ${userQuery}\n${footer}`.trim();
