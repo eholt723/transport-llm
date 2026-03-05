@@ -55,6 +55,18 @@ This pivot was made choosing the most reliable and maintainable path while still
 
 ---
 
+### Testing
+
+```bash
+# TypeScript (Vitest) — RAG logic: similarity, scoring, prompt augmentation
+cd web && npm test
+
+# Python (pytest) — RAG index builder: chunking, cleaning, domain inference
+.venv/bin/python -m pytest tests/ -v
+```
+
+---
+
 ### Project Structure
 
 ```
